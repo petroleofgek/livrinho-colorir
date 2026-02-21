@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Livro de Colorir - Página 5</title>
+<style>
+body {
+  margin:0;
+  padding:0;
+  background:black;
+  color:white;
+  text-align:center;
+  font-family:Arial;
+}
+.container{
+  position:relative;
+  display:inline-block;
+}
+#imagem{
+  max-width:90vw;
+  touch-action:none;
+  user-select:none;
+}
+.colors button, .brushSizes button{
+  width:35px;
+  height:35px;
+  margin:3px;
+  border:none;
+  border-radius:50%;
+  cursor:pointer;
+}
+button#eraserBtn, button#prevPage, button#nextPage{
+  padding:10px 20px;
+  border-radius:8px;
+  margin-top:10px;
+  background-color:red;
+  color:white;
+  font-size:16px;
+  border:none;
+  cursor:pointer;
+}
+button#zoomIn, button#zoomOut{
+  padding:10px 15px;
+  border-radius:8px;
+  background-color:red;
+  color:white;
+  font-size:16px;
+  border:none;
+  cursor:pointer;
+  position:absolute;
+  top:10px;
+}
+button#zoomIn{ right:50px; }
+button#zoomOut{ right:10px; }
+</style>
+</head>
+<body>
+
+<h1>Livro de Colorir</h1>
+<p>Pucca & Garu ❤️</p>
+
+<div class="container">
+  <img id="imagem" src="img5.jpg">
+  <canvas id="tela"></canvas>
+
+  <!-- Botões de zoom -->
+  <button id="zoomIn" onclick="zoom(1.2)">Zoom +</button>
+  <button id="zoomOut" onclick="zoom(0.8)">Zoom -</button>
+</div>
+
+<div class="colors">
+  <button style="background:red" onclick="cor='red'"></button>
+  <button style="background:blue" onclick="cor='blue'"></button>
+  <button style="background:yellow" onclick="cor='yellow'"></button>
+  <button style="background:green" onclick="cor='green'"></button>
+  <button style="background:white" onclick="cor='white'"></button>
+  <button style="background:black" onclick="cor='black'"></button>
+  <button style="background:orange" onclick="cor='orange'"></button>
+  <button style="background:purple" onclick="cor='purple'"></button>
+  <button style="background:pink" onclick="cor='pink'"></button>
+  <button style="background:brown" onclick="cor='brown'"></button>
+  <button style="background:lightblue" onclick="cor='lightblue'"></button>
+  <button style="background:lightgreen" onclick="cor='lightgreen'"></button>
+  <button style="background:violet" onclick="cor='violet'"></button>
+  <button style="background:magenta" onclick="cor='magenta'"></button>
+  <button style="background:cyan" onclick="cor='cyan'"></button>
+  <button style="background:gold" onclick="cor='gold'"></button>
+  <button style="background:silver" onclick="cor='silver'"></button>
+  <button style="background:navy" onclick="cor='navy'"></button>
+  <button style="background:maroon" onclick="cor='maroon'"></button>
+  <button style="background:teal" onclick="cor='teal'"></button>
+  <button id="eraserBtn" onclick="cor='eraser'">Borracha</button>
+</div>
+
+<div class="brushSizes">
+  <p>Escolha o tamanho do pincel:</p>
+  <button onclick="tamanhoPincel=5">Fino</button>
+  <button onclick="tamanhoPincel=15">Médio</button>
+  <button onclick="tamanhoPincel=30">Grosso</button>
+</div>
+
+<br>
+<!-- Botões de navegação -->
+<button id="prevPage" onclick="window.location.href='pagina4.html'">Voltar</button>
+<button id="nextPage" onclick="window.location.href='index.html'">Voltar ao início</button>
+
+<script>
+let cor = 'red';
+let tamanhoPincel = 15; // padrão médio
+let canvas = document.getElementById('tela');
+let ctx = canvas.getContext('2d');
+let img = document.getElementById('imagem');
+let preenchimentos = [];
+let desenhando = false;
+let scale = 1;
+let lastX, lastY;
+
+// Ajusta canvas sobre a imagem
+function ajustarCanvas(){
+  canvas.width = img.clientWidth;
+  canvas.height = img.clientHeight;
+  canvas.style.position = "absolute";
+  canvas.style.left = "0";
+  canvas.style.top = "0";
+  carregarPintura();
+}
+ajustarCanvas();
+window.addEventListener('resize', ajustarCanvas);
+
+// Pintura ou borracha com compensação de zoom
+function startDraw(e){
+  e.preventDefault();
+  desenhando = true;
+  let rect = canvas.getBoundingClientRect();
+  lastX = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / scale;
+  lastY = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / scale;
+}
+function endDraw(e){
+  desenhando = false;
+  ctx.beginPath();
+  salvarPintura();
+}
+function desenhar(e){
+  if(!desenhando) return;
+  let rect = canvas.getBoundingClientRect();
+  let x = ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / scale;
+  let y = ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) / scale;
+
+  ctx.lineWidth = tamanhoPincel;
+  ctx.lineCap = "round";
+
+  if(cor === 'eraser'){
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = cor;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(x, y);
+  ctx.stroke();
+
+  lastX = x;
+  lastY = y;
+
+  preenchimentos.push({x1:lastX, y1:lastY, x2:x, y2:y, cor:cor, size:tamanhoPincel});
+}
+
+// Eventos
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('touchstart', startDraw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('touchend', endDraw);
+canvas.addEventListener('mousemove', desenhar);
+canvas.addEventListener('touchmove', desenhar);
+
+// Zoom
+function zoom(fator){
+  scale *= fator;
+  img.style.transform = `scale(${scale})`;
+  canvas.style.transform = `scale(${scale})`;
+}
+
+// 🔹 Salvar e carregar pintura no LocalStorage
+function salvarPintura(){
+  localStorage.setItem('pinturaPagina5', JSON.stringify(preenchimentos));
+}
+function carregarPintura(){
+  let dados = localStorage.getItem('pinturaPagina5');
+  if(!dados) return;
+  preenchimentos = JSON.parse(dados);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  preenchimentos.forEach(p=>{
+    ctx.lineWidth = p.size;
+    ctx.lineCap = "round";
+    if(p.cor === 'eraser'){
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = p.cor;
+    }
+    ctx.beginPath();
+    ctx.moveTo(p.x1, p.y1);
+    ctx.lineTo(p.x2, p.y2);
+    ctx.stroke();
+  });
+}
+</script>
+
+</body>
+</html>
